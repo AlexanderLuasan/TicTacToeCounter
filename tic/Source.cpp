@@ -15,9 +15,9 @@ struct pass { // need topass array by value
 };
 
 struct statecount {//a return value for the threads
-	int ones;
-	int twos;
-	int threes;
+	int ones;//valid win game
+	int twos;//valid stale mates
+	int threes;//unfinished valid
 	int totalendstates;
 	int totalvalidstates;
 	int nodecount[boardsize*boardsize+1];
@@ -31,9 +31,6 @@ char add(char n);//e->x x->o o->c  used to icrement the arrays
 pass tonextvalid(pass inital, pass lim); //runs to find the next vaild array state
 pass generatenextn(pass inital,int numbertoadd); //runs to find next array state no valid check
 statecount runsequence(pass start, pass end);//the main threaded function
-
-
-
 
 
 int main() {
@@ -96,8 +93,8 @@ int main() {
 	}
 	future<statecount> threads[activethreads];
 
-	//intialize the buffer
 
+	//intialize the buffer
 	for (int i = 0; i < buffsize; i++) {
 		initalbuff[i].overflow = false;
 		for (int ii = 0; ii < boardsize*boardsize; ii++) {
