@@ -25,7 +25,7 @@ struct statecount {//a return value for the threads
 };
 
 sateinfo test(pass game,int fun);//function test if the endstate is valid
-bool validator(pass form);
+bool validator(pass form);//runs check
 bool comparearray(char arr1[boardsize][boardsize], char arr2[boardsize][boardsize]);//sees if the board states are equal
 char add(char n);//e->x x->o o->c  used to icrement the arrays
 pass tonextvalid(pass inital, pass lim); //runs to find the next vaild array state
@@ -120,6 +120,8 @@ int main() {
 		initalbuff[buffsize+1].board[ii % boardsize][ii / boardsize] = counter[ii % boardsize][ii / boardsize];
 	}
 
+
+	/*
 	//pinrt intalvalues
 	for (int ii = 0; ii < buffsize; ii++) {
 		for (int i = 0; i < boardsize*boardsize; i++) {
@@ -127,9 +129,11 @@ int main() {
 		}
 		cout << endl;
 	}
-	
-	//init done;
+	*/
 
+
+	//init done;
+	
 
 	system("pause");
 	int head = 0;
@@ -149,7 +153,7 @@ int main() {
 	elaps = (now - starttime);
 	bool solving = true;
 	while (solving) {
-		for (int i = 0; i < activethreads; i++) {
+		for (int i = 0; i < activethreads; i++) {//watch all threads
 			future_status status;
 			if (threads[i].valid()) {
 				status = threads[i].wait_for(0ms);
@@ -168,11 +172,11 @@ int main() {
 					if (true) {//setup next set
 						threads[i] = async(&runsequence, initalbuff[head], initalbuff[head + 1]);
 						head += 1;
-						if (head%activethreads == 0) {//update the progress
+						if (head%1 == 0) {//update the progress
 							now = time(0);
 							elaps = (now - starttime);
-							timeleft = (double(elaps) /head * (buffsize-double(head)));
-							/*
+							timeleft = (double(elaps) /head * (buffsize-head));
+							
 							cout << fixed;
 							cout << setprecision(3);
 							cout << "\r" << "progress: " << double(head) * 100 / buffsize << "% ";
@@ -180,7 +184,7 @@ int main() {
 							cout << timeleft;
 							cout << "    ";
 							cout << flush;
-							*/
+							
 						}
 						if (head > buffsize -1) {
 							solving = false;
@@ -193,7 +197,7 @@ int main() {
 		}
 	}
 	cout << endl;
-	for (int i = 0; i < activethreads; i++) {
+	for (int i = 0; i < activethreads; i++) {//close the last of the threads
 		if (threads[i].valid()) {
 			threads[i].wait();
 			statecount temp = threads[i].get();
@@ -208,8 +212,8 @@ int main() {
 			}
 			now = time(0);
 			elaps = (now - starttime);
-			timeleft = (double(elaps) / head * (buffsize - double(head)));
-			/*
+			timeleft = (double(elaps) / head * (buffsize - head));
+			
 			cout << fixed;
 			cout << setprecision(3);
 			cout << "\r" << "progress: " << double(head) * 100 / buffsize << "% ";
@@ -217,12 +221,11 @@ int main() {
 			cout << timeleft;
 			cout << "    ";
 			cout << flush;
-			*/
+			
 		}
 	}
-
-	cout << endl;
-	now = time(0);
+	//print the data
+	cout << "here" << endl;	now = time(0);
 	elaps = (now - starttime);
 	cout << endl;
 	cout << "node list" << endl;
@@ -240,7 +243,7 @@ int main() {
 	system("pause");
 }
 
-int pow3(int n)
+int pow3(int n)//power
 {
 	int end = 1;
 	for (int i = 0; i < n; i++) {
@@ -286,12 +289,13 @@ pass tonextvalid(pass inital, pass lim)
 	do {
 		inital = generatenextn(inital, 1);
 		if (inital.overflow) {
+			lim.overflow = true;
 			return lim;
 		}
 		if (comparearray(inital.board, lim.board)) {
 			return lim;
 		}
-	} while (!validator(inital));
+	} while (!validator(inital)||inital.overflow);
 	return inital;
 }
 
@@ -316,7 +320,7 @@ pass generatenextn(pass inital, int numbertoadd)
 	return inital;
 }
 
-statecount runsequence(pass start, pass end)
+statecount runsequence(pass start, pass end)//needed for threading
 {
 	/* show inital starting point
 	cout << "initalpass: ";
@@ -405,6 +409,7 @@ statecount runsequence(pass start, pass end)
 									final.totalvalidstates += 1;
 									final.twos += 1;
 									final.nodeendcount[gametype.depth] += 1;
+									final.nodecount[gametype.depth] += 1;
 								}
 								else if (gametype.gametype == 3) {//unfished but valid
 									final.totalvalidstates += 1;
@@ -442,7 +447,7 @@ statecount runsequence(pass start, pass end)
 					*/
 
 					ready = true;
-					if (comparearray(buffer.board, end.board)) {
+					if (comparearray(buffer.board, end.board)||buffer.overflow) {
 						doneadd = true;
 						done = true;
 						//cout << " end?" << endl;
